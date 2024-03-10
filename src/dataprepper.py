@@ -37,5 +37,4 @@ for a in annotation_list:
 
     data_df = pd.DataFrame(data)
 
-    # print(data_df.describe())
     data_df.to_csv(f'data/raw_{a["text"].replace(" ", "_")}_.txt')
