@@ -103,7 +103,10 @@ def load_data_to_csv(grafanaconfigfile, tagfilter, outputfile):
 @cli.command()
 @click.option("--inputFile", default="data/rawExport.csv", help="Filename read the data from in 'raw' column format")
 @click.option("--outputFile", default="data/harExport.csv", help="Filename to output the data to. Outputs in 'few-hundret-column'-format")
-def raw_csv_to_har_format(inputfile, outputfile):
+@click.option("--oversamplingFreq", default=1000, type=float, help="Oversampling frequency for data-dejittering. Defaults to 1kHz")
+@click.option("--chunkSize", default=500, type=int, help="Chunk size used for grouping and statistical analysis. defaults to 500ms.")
+@click.option("--chunkOverlap", default=0, type=float, help="Overlap between two chunks/windows used for statistical analysis")
+def raw_csv_to_har_format(inputfile, outputfile, oversamplingfreq, chunksize, chunkoverlap):
     import numpy as np
     import scipy as scp
     import pandas as pd
@@ -135,7 +138,8 @@ def raw_csv_to_har_format(inputfile, outputfile):
     #### compensate the data-aquisition-jitter (by upsampling and interpolation)
     # Alternative: Use nearest-neighbour or spline-interpolation instead of linear one?
     # method=linear = ignores the index and treats them as equally spaced. not suitable for usecase, use method=time!
-    data_df = data_df.resample("0.001s").mean().interpolate(method='time')
+    oversampling_timedelta = 1 / oversamplingfreq
+    data_df = data_df.resample(f"{oversampling_timedelta}s").mean().interpolate(method='time')
     # optional: downsample again to e.g. 50Hz used in HAR-Dataset?
 
     #### remove noise and split into "body" and "gravitation"-branches
@@ -147,9 +151,9 @@ def raw_csv_to_har_format(inputfile, outputfile):
         return scp.signal.filtfilt(b, a, data)
 
     # apply filter to all columns
-    body_df = data_df.apply(lambda col: bworth_filter(col, 1000, 3, 20))
+    body_df = data_df.apply(lambda col: bworth_filter(col, oversamplingfreq, 3, 20))
 
-    gravity_df = data_df.apply(lambda col: bworth_filter(col, 1000, 3, 0.3))
+    gravity_df = data_df.apply(lambda col: bworth_filter(col, oversamplingfreq, 3, 0.3))
 
     #baseline_df = pd.merge_asof(body_df, gravity_df, left_index=True, right_index=True, direction="nearest", suffixes=("_body", "_gravity"))
     baseline_df = pd.merge(body_df, gravity_df, left_index=True, right_index=True, how="outer", suffixes=("_body", "_gravity"))
@@ -161,9 +165,11 @@ def raw_csv_to_har_format(inputfile, outputfile):
 
     #### Sampling/Batching for statistical feature generation
     ## sample by time duration
-    TIME_DURATION = "0.5s"
-    intermediate_df["time_tmp"] = intermediate_df.index
-    intermediate_df['window_label'] = intermediate_df["time_tmp"].apply(lambda ts: ts.floor(TIME_DURATION))
+    TIME_DURATION = f"{chunksize/1000}s"
+    window_width = pd.Timedelta(milliseconds=chunksize)
+
+    #intermediate_df["time_tmp"] = intermediate_df.index
+    #intermediate_df['window_label'] = intermediate_df["time_tmp"].apply(lambda ts: ts.floor(window_width))
 
     ## sample by count
         #BATCH_SIZE = 128
@@ -172,10 +178,14 @@ def raw_csv_to_har_format(inputfile, outputfile):
     #### process the groups one after another
     output_data = []
 
-    grouped_df = intermediate_df.groupby('window_label')
-    for window_label, group in grouped_df:
-        del group["time_tmp"]
-        del group["window_label"]
+    # prepare the indexing for the data blocks
+    samplect = (chunksize / 1000) / oversampling_timedelta
+    window_count = math.ceil(intermediate_df.shape[0] / (samplect * (1-chunkoverlap)))
+    for group_id in range(window_count):
+        group_start_idx = int(np.floor(group_id * (samplect * (1-chunkoverlap))))
+        group_end_idx = int(np.floor(group_start_idx + samplect))
+
+        group = intermediate_df[group_start_idx:group_end_idx]
         timestamps = list(group.index.map(lambda _: _.timestamp()))
         
         # add basic metrics
