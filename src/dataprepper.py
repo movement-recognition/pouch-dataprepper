@@ -36,7 +36,7 @@ def list_annotations(grafanaconfigfile, tagfilter):
             if subfil in tagfilter.strip().split(","):
                 filter_match = True
                 break
-            
+
         if filter_match or tagfilter == "":
             selstr = "\033[92m[x]\033[0m"
         else:
@@ -71,6 +71,10 @@ def load_data_to_csv(grafanaconfigfile, tagfilter, outputfile):
                 break
 
         if filter_match or tagfilter == "":
+            date_string_format = '%y-%m-%dT%H:%M:%S'
+            start_time_str = datetime.datetime.utcfromtimestamp(a["time"] / 1000).strftime(date_string_format)
+            end_time_str = datetime.datetime.utcfromtimestamp(a["timeEnd"]/1000).strftime(date_string_format)
+            print("\033[94madding\033[0m", a["text"], end="")
 
             startTime = a["time"]
             endTime = a["timeEnd"]
@@ -85,6 +89,9 @@ def load_data_to_csv(grafanaconfigfile, tagfilter, outputfile):
                 
                 for row in data_subset["values"]:
                     data.append(dict(zip(data_cols, row)))
+                print("\r\033[92m done \033[0m", a["text"])
+            else:
+                print("\r\033[91merror:\033[0m", "no rows in time range of", f'({a["text"]})')
             
 
     data_df = pd.DataFrame(data)
