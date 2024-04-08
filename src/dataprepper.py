@@ -29,12 +29,12 @@ def list_annotations(grafanaconfigfile, tagfilter):
 
     annotation_list = annotation_req.json()
 
-    print("     StartTime          EndTime           Description            Tags")
+    print("     StartTime          EndTime           Description                                Tags")
     for a in annotation_list:
-        filter_match = False
-        for subfil in a["tags"]:
-            if subfil in tagfilter.strip().split(","):
-                filter_match = True
+        filter_match = True
+        for subfil in tagfilter.strip().split(","):
+            if subfil not in a["tags"]:
+                filter_match = False
                 break
 
         if filter_match or tagfilter == "":
@@ -45,7 +45,7 @@ def list_annotations(grafanaconfigfile, tagfilter):
         date_string_format = '%y-%m-%dT%H:%M:%S'
         start_time_str = datetime.datetime.utcfromtimestamp(a["time"] / 1000).strftime(date_string_format)
         end_time_str = datetime.datetime.utcfromtimestamp(a["timeEnd"]/1000).strftime(date_string_format)
-        print(selstr, str(start_time_str).rjust(18), str(end_time_str).rjust(18), a["text"].ljust(22), a["tags"])
+        print(selstr, str(start_time_str).rjust(18), str(end_time_str).rjust(18), a["text"][:42].ljust(42), a["tags"])
 
 
 @cli.command()
