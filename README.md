@@ -16,11 +16,29 @@ The `logupload.py` program should be used for ingesting the data to the influx d
 
 ## preparing videos
 
-`ffmpeg -i VID_20240327_112204Z.mp4 -vf "drawtext=fontfile=/usr/share/fonts/TTF/Inconsolata-Medium.ttf: text='%{pts} |%{frame_num}/%{nb_frames}': start_number=1: x=(w-tw)/2: y=h-(2*lh): fontcolor=black: fontsize=20: box=1: boxcolor=white: boxborderw=5" -c:a copy output_video.mp4`
+how to embed frame numbers into existing videos:
+```
+ffmpeg -i VID_20240327_112204Z.mp4 -vf " drawtext=fontfile=/usr/share/fonts/TTF/Inconsolata-Medium.ttf: text='%{pts} |%{frame_num}/%{nb_frames}': start_number=1: x=(w-tw)/2: y=h-(2*lh): fontcolor=black: fontsize=20: box=1: boxcolor=white: boxborderw=5" -c:a copy output_video.mp4
+```
 
 
 ## annotating data
 
+
+
 ## download/generate training datasets
+
+
+`python3 dataprepper.py list-annotations --tagFilter=idle,truck`
+
+```
+     StartTime          EndTime           Description                                Tags
+[ ]  24-03-27T11:36:11  24-03-27T11:36:11 Test005endofdata                           []
+[ ]  24-03-27T11:35:36  24-03-27T11:35:36 actual end marker/end of video 005         ['end']
+[ ]  24-02-15T15:23:38  24-02-15T15:23:39 main idle                                  ['idle']
+[ ]  19-03-27T16:40:09  19-03-27T16:40:21 Idle drölf                                 ['idle']
+[x]  19-03-27T16:38:46  19-03-27T16:39:01 Idle 1                                     ['idle', 'truck']
+```
+
 
 - column format is similar to the columns/statistical features used in the [HAR-Dataset](https://doi.org/10.24432/C54S4K)/[or here](https://www.semanticscholar.org/paper/A-Public-Domain-Dataset-for-Human-Activity-using-Anguita-Ghio/83de43bc849ad3d9579ccf540e6fe566ef90a58e)
