@@ -89,10 +89,12 @@ With a third processing method you can then convert this intermediate file into 
 
 `python3 dataprepper.py raw-csv-to-har-format --inputFile=data_idle.csv --outputFile=idle_data_har.csv`
 
-If you want, you can use the following parameters to apply some basic kinds of augmentation: 
+If you want, you can use the following parameters to apply some basic kinds of augmentation. By default, the data is overlapped by 50% to double the amount of outputted data.
 ```
 --chunkSize INTEGER       Chunk size used for grouping and statistical analysis. defaults to 500ms.
 --chunkOverlap FLOAT      Overlap between two chunks/windows used for statistical analysis
 ```
 
 You can get also get help or short explanation-texts for the parameters by calling all of the listed commands above with the `--help`-suffix.
+
+#### WARNING: At the moment, the labels are not exported to the files in any kind. you have to do this by yourself, e.g. by using a basic shell script fetching the data for each category and adding it's label as a seperate column. 
