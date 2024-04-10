@@ -95,6 +95,8 @@ If you want, you can use the following parameters to apply some basic kinds of a
 --chunkOverlap FLOAT      Overlap between two chunks/windows used for statistical analysis
 ```
 
+Not implemented yet but may be in future: Option to enable/disable data-streams in har-generation (e.g. do not export gyro-data/ignore the Low-G-Sensor et cetera)
+
 You can get also get help or short explanation-texts for the parameters by calling all of the listed commands above with the `--help`-suffix.
 
 #### WARNING: At the moment, the labels are not exported to the files in any kind. you have to do this by yourself, e.g. by using a basic shell script fetching the data for each category and adding it's label as a seperate column. 
