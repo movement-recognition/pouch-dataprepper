@@ -66,10 +66,10 @@ def load_data_to_csv(grafanaconfigfile, tagfilter, outputfile):
     if tagfilter == "":
         print("no tagFilter supplied, using all tagged data existing")
     for a in annotation_list:
-        filter_match = False
-        for subfil in a["tags"]:
-            if subfil in tagfilter.strip().split(","):
-                filter_match = True
+        filter_match = True
+        for subfil in tagfilter.strip().split(","):
+            if subfil not in a["tags"]:
+                filter_match = False
                 break
 
         if filter_match or tagfilter == "":
