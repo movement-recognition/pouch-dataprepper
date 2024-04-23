@@ -46,10 +46,39 @@ To annotate the data, select the range you want to label by keeping the Ctrl-Key
 
 ![Adding tags to a time range](adding_tags.png)
 
-| level | short | long form | description |
-|-------|-------|-----------|-------------|
-| basic | idle  | idling    | device is not moved, placed still on ground |
-| tbd   | tbd   | tbd       | tbd         |
+| **Tag**    | **Full Name**        | **Comments**                              |
+|------------|----------------------|-------------------------------------------|
+| **_veh_**  | **_vehicle type_**   |                                           |
+| man_veh    | manual               |                                           |
+| pltk_veh   | pallet truck         |                                           |
+| forkl_veh  | forkflift            |                                           |
+| truck_veh  | truck                |                                           |
+| **_flo_**  | **_floor type_**     |                                           |
+| lino_flo   | linoleum             |                                           |
+| conc_flo   | concrete             |                                           |
+| asph_flo   | asphalt              |                                           |
+| grav_flo   | gravel               |                                           |
+| carp_flo   | carpet               |                                           |
+| **_mov_**  | **_movement type_**  |                                           |
+| acc_mov    | accelerating         | must be combined with   direction         |
+| dec_mov    | decelerating         | must be combined with   direction         |
+| idl_mov    | idle                 |                                           |
+| crus_mov   | crusing              | must be combined with   direction         |
+| curv_mov   | curve                | must be combined with   direction         |
+| **_dir_**  | **_direction type_** |                                           |
+| up_dir     | up                   |                                           |
+| dwn_dir    | down                 |                                           |
+| ri_dir     | right                |                                           |
+| le_dir     | left                 |                                           |
+| forw_dir   | forwards             |                                           |
+| bac_dir    | backwards            |                                           |
+| **_evt_**  | **_short events_**   |                                           |
+| dr-un_evt  | drive under          | pallet truck or   forklift under a pallet |
+| dr-out_evt | drive out            | pallet truck or   forklift under a pallet |
+| lf-up_evt  | lift up              |                                           |
+| lf-dw_evt  | lift down            |                                           |
+| tilt_evt   | tilt                 | can be combined with   direction          |
+| crsh_evt   | crash                | any kind of accident                      |
 
 It helps, if you are only using one diagram for annotating (e.g. the one for "gyro") to avoid overlapping tagging -- but for the further steps it doesn't matter, all ranges are thrown together into one big dataset.
 
