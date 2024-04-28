@@ -105,7 +105,7 @@ In the list below you'll get a preview of what tagged regions you'll get in your
 
 If you think, this selection fits your needs, you then can use your filter-query with the following command:
 
-`python3 dataprepper.py load-data-to-csv --tagFilter=idle,truck --outputFile="data_idle.csv"`
+`python3 dataprepper.py load-data-to-csv --tagFilter="man_veh,lf-dw_evt;man_veh,lf-up_evt" --outputFile="data_idle.csv"`
 
 This results in a kind of raw-file-format containing all raw data captured by the sensors -- but filtered by the filter.
 ```
