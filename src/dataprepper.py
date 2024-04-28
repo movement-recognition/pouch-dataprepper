@@ -15,6 +15,18 @@ import pandas as pd
 def cli():
     pass
 
+def filter_function(tagfilter, annotation):
+    if tagfilter == "":
+        return True
+    for and_filter in tagfilter.strip().split(";"):
+        filter_match = True
+        for subfil in and_filter.split(","):
+            if subfil not in annotation["tags"]:
+                filter_match = False
+                break
+        if filter_match:
+            return True
+    return filter_match
 
 @cli.command()
 @click.option("--grafanaConfigfile", default="config.json", help="path to the config-file containing the grafana config-data.")
@@ -31,13 +43,9 @@ def list_annotations(grafanaconfigfile, tagfilter):
 
     print("     StartTime          EndTime           Description                                Tags")
     for a in annotation_list:
-        filter_match = True
-        for subfil in tagfilter.strip().split(","):
-            if subfil not in a["tags"]:
-                filter_match = False
-                break
+        filter_match = filter_function(tagfilter, a)
 
-        if filter_match or tagfilter == "":
+        if filter_match:
             selstr = "\033[92m[x]\033[0m"
         else:
             selstr = "\033[91m[ ]\033[0m"
@@ -45,6 +53,7 @@ def list_annotations(grafanaconfigfile, tagfilter):
         date_string_format = '%y-%m-%dT%H:%M:%S'
         start_time_str = datetime.datetime.utcfromtimestamp(a["time"] / 1000).strftime(date_string_format)
         end_time_str = datetime.datetime.utcfromtimestamp(a["timeEnd"]/1000).strftime(date_string_format)
+        a["tags"].sort()
         print(selstr, str(start_time_str).rjust(18), str(end_time_str).rjust(18), a["text"][:42].ljust(42), a["tags"])
 
 
@@ -66,13 +75,9 @@ def load_data_to_csv(grafanaconfigfile, tagfilter, outputfile):
     if tagfilter == "":
         print("no tagFilter supplied, using all tagged data existing")
     for a in annotation_list:
-        filter_match = True
-        for subfil in tagfilter.strip().split(","):
-            if subfil not in a["tags"]:
-                filter_match = False
-                break
+        filter_match = filter_function(tagfilter, a)
 
-        if filter_match or tagfilter == "":
+        if filter_match:
             date_string_format = '%y-%m-%dT%H:%M:%S'
             start_time_str = datetime.datetime.utcfromtimestamp(a["time"] / 1000).strftime(date_string_format)
             end_time_str = datetime.datetime.utcfromtimestamp(a["timeEnd"]/1000).strftime(date_string_format)

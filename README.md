@@ -88,17 +88,19 @@ It helps, if you are only using one diagram for annotating (e.g. the one for "gy
 The dataset labeled in the grafana+influxDB-Stack can be extracted by the following chain of micro-tools:
 First of all you need to download the raw sensor data, filtered by a selection of tags you want:
 
-`python3 dataprepper.py list-annotations --tagFilter=idle,truck`
+`python3 dataprepper.py list-annotations --tagFilter="man_veh,lf-dw_evt;man_veh,lf-up_evt"`
+
+If you concatenate two or more tags with a comma (`man_veh,lf-dw_evt`), they are AND-linked together. You can join multiple of those queries by splitting those filters with a semicolon. If doing that, please use `"`-marks to escape the semicolon from your command line.
 
 In the list below you'll get a preview of what tagged regions you'll get in your export.
 
 ```
-     StartTime          EndTime           Description                                Tags
-[ ]  24-03-27T11:36:11  24-03-27T11:36:11 Test005endofdata                           []
-[ ]  24-03-27T11:35:36  24-03-27T11:35:36 actual end marker/end of video 005         ['end']
-[ ]  24-02-15T15:23:38  24-02-15T15:23:39 main idle                                  ['idle']
-[ ]  19-03-27T16:40:09  19-03-27T16:40:21 Idle drölf                                 ['idle']
-[x]  19-03-27T16:38:46  19-03-27T16:39:01 Idle 1                                     ['idle', 'truck']
+     StartTime          EndTime           Description          Tags
+[x]  24-04-12T12:58:06  24-04-12T12:58:07 Stellplatz Stuhl     ['lf-dw_evt', 'man_veh']
+[ ]  24-04-12T12:57:27  24-04-12T12:57:47 Kurvige Fahrt        ['crus_mov', 'forw_dir', 'man_veh']
+[ ]  24-04-12T12:57:21  24-04-12T12:57:23 Beschleunigen 1      ['acc_mov', 'back_dir', 'man_veh']
+[x]  24-04-12T12:57:12  24-04-12T12:57:21 Hubwagen anheben     ['lf-up_evt', 'man_veh']
+[ ]  24-04-12T12:57:08  24-04-12T12:57:12 Hubwagen unterfahren ['dr-un_evt', 'man_veh']
 ```
 
 If you think, this selection fits your needs, you then can use your filter-query with the following command:
