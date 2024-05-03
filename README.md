@@ -79,7 +79,7 @@ To annotate the data, select the range you want to label by keeping the Ctrl-Key
 | lf-dw_evt  | lift down            |                                                                                                                                                                                                                                                 |
 | tilt_evt   | tilt                 | can be combined with direction                                                                                                                                                                                                                  |
 | crsh_evt   | crash                | any kind of accident                                                                                                                                                                                                                            |
-| surnd_evt  | surrounding event    | any kind of (possibly) measurable distraction in the surroundings that is not directly attached or interacting with the device                                                                                                                  |
+| surnd_evt  | surrounding event    | any kind of (possibly) measurable distraction in the surroundings that is not directly attached or interacting with the device; try to specify the situation via veh and flo types                                                           |
 
 It helps, if you are only using one diagram for annotating (e.g. the one for "gyro") to avoid overlapping tagging -- but for the further steps it doesn't matter, all ranges are thrown together into one big dataset.
 
