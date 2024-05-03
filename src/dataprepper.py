@@ -28,11 +28,8 @@ def filter_function(tagfilter, annotation):
             return True
     return filter_match
 
-@cli.command()
-@click.option("--grafanaConfigfile", default="config.json", help="path to the config-file containing the grafana config-data.")
-@click.option("--tagFilter", default="", help="filter the annotations by their tag")
-def list_annotations(grafanaconfigfile, tagfilter):  
-    with open("config.json", "r") as f:
+def fetch_annotations(grafanaconfigfile):
+    with open(grafanaconfigfile, "r") as f:
         config = json.load(f)
 
     auth_header = {"Authorization": f"Bearer {config['grafana_token']}"}
@@ -40,6 +37,16 @@ def list_annotations(grafanaconfigfile, tagfilter):
     annotation_req = requests.get(annotation_url, headers=auth_header)
 
     annotation_list = annotation_req.json()
+    annotation_list = sorted(annotation_list, key=lambda d: d['time']) # sort time-ascending
+    return annotation_list
+
+
+@cli.command()
+@click.option("--grafanaConfigfile", default="config.json", help="path to the config-file containing the grafana config-data.")
+@click.option("--tagFilter", default="", help="filter the annotations by their tag")
+def list_annotations(grafanaconfigfile, tagfilter):  
+    
+    annotation_list = fetch_annotations(grafanaconfigfile)
 
     print("     StartTime          EndTime           Description                                Tags")
     for a in annotation_list:
@@ -62,14 +69,8 @@ def list_annotations(grafanaconfigfile, tagfilter):
 @click.option("--tagFilter", default="", help="filter the annotations by their tag")
 @click.option("--outputFile", default="data/rawExport.csv", help="Filename to output the data to")
 def load_data_to_csv(grafanaconfigfile, tagfilter, outputfile):
-    with open("config.json", "r") as f:
-        config = json.load(f)
-
-    auth_header = {"Authorization": f"Bearer {config['grafana_token']}"}
-    annotation_url = f"{config['grafana_base_url']}/api/annotations?from=0&to=180656035630300&limit=10000&matchAny=false&dashboardUID={config['grafana_dashboard_uid']}"
-    annotation_req = requests.get(annotation_url, headers=auth_header)
-
-    annotation_list = annotation_req.json()
+    
+    annotation_list = fetch_annotations(grafanaconfigfile)
 
     data = []
     if tagfilter == "":
