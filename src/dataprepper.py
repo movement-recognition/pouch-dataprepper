@@ -44,18 +44,38 @@ def fetch_annotations(grafanaconfigfile):
 @cli.command()
 @click.option("--grafanaConfigfile", default="config.json", help="path to the config-file containing the grafana config-data.")
 @click.option("--tagFilter", default="", help="filter the annotations by their tag")
-def list_annotations(grafanaconfigfile, tagfilter):  
+@click.option("--mergeThreshold", default=-1, help="time in ms when two labels with matching filter should be merged together. -1 = switched off = default.")
+def list_annotations(grafanaconfigfile, tagfilter, mergethreshold):  
     
     annotation_list = fetch_annotations(grafanaconfigfile)
 
+    cumulated_tag_time = 0.0
+    cumulated_tag_count = 0
+
+    # variables needed for merging
+    last_end_timestamp = 0
+    last_matched = False
+    merge_thresh = False
     print("     StartTime          EndTime           Description                                Tags")
     for a in annotation_list:
         filter_match = filter_function(tagfilter, a)
 
+        merge_thresh = mergethreshold > 0 and a["time"] - last_end_timestamp < mergethreshold and last_matched == True
+
         if filter_match:
-            selstr = "\033[92m[x]\033[0m"
+            if merge_thresh:
+                selstr = "\033[94m[x]\033[0m" # blue X
+            else:
+                selstr = "\033[92m[x]\033[0m" # green x
+                
+            cumulated_tag_time += a["timeEnd"] - a["time"]
+            cumulated_tag_count += 1
+            
+            last_matched = True
+            last_end_timestamp = a["timeEnd"]
         else:
-            selstr = "\033[91m[ ]\033[0m"
+            selstr = "\033[91m[ ]\033[0m" # red x
+            last_matched = False
 
         date_string_format = '%y-%m-%dT%H:%M:%S'
         start_time_str = datetime.datetime.utcfromtimestamp(a["time"] / 1000).strftime(date_string_format)
@@ -63,13 +83,20 @@ def list_annotations(grafanaconfigfile, tagfilter):
         a["tags"].sort()
         print(selstr, str(start_time_str).rjust(18), str(end_time_str).rjust(18), a["text"][:42].ljust(42), a["tags"])
 
+    print("\n")
+    print(f"cumulated duration of {cumulated_tag_count} selected tags: {round(cumulated_tag_time/1000, 1)} seconds")
+
 
 @cli.command()
 @click.option("--grafanaConfigfile", default="config.json", help="path to the config-file containing the grafana config-data.")
 @click.option("--tagFilter", default="", help="filter the annotations by their tag")
 @click.option("--outputFile", default="data/rawExport.csv", help="Filename to output the data to")
 def load_data_to_csv(grafanaconfigfile, tagfilter, outputfile):
-    
+    with open(grafanaconfigfile, "r") as f:
+        config = json.load(f)
+        auth_header = {"Authorization": f"Bearer {config['grafana_token']}"}
+
+    print(f"Exporting selected regions to {outputfile}…")
     annotation_list = fetch_annotations(grafanaconfigfile)
 
     data = []
