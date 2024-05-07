@@ -10,6 +10,7 @@ import requests
 import datetime
 import click
 import pandas as pd
+from tqdm import tqdm
 
 @click.group()
 def cli():
@@ -118,12 +119,12 @@ def list_annotations(grafanaconfigfile, tagfilter, mergethreshold):
 
         date_string_format = '%y-%m-%dT%H:%M:%S'
         start_time_str = datetime.datetime.utcfromtimestamp(a["time"] / 1000).strftime(date_string_format)
-        end_time_str = datetime.datetime.utcfromtimestamp(a["timeEnd"]/1000).strftime(date_string_format)
+        end_time_str = datetime.datetime.utcfromtimestamp(a["timeEnd"] / 1000).strftime(date_string_format)
         a["tags"].sort()
         print(selstr, str(start_time_str).rjust(18), str(end_time_str).rjust(18), a["text"][:42].ljust(42), a["tags"])
 
     print("\n")
-    print(f"cumulated duration of {cumulated_tag_count} selected tags: {round(cumulated_tag_time/1000, 1)} seconds")
+    print(f"cumulated duration of {cumulated_tag_count} selected tags: {round(cumulated_tag_time / 1000, 1)} seconds")
 
 
 @cli.command()
@@ -195,6 +196,7 @@ def raw_csv_to_har_format(inputfile, outputfile, oversamplingfreq, chunksize, ch
     import time
     from matplotlib import pyplot as plt
 
+    print("1/ reading input file")
     data_df = pd.read_csv(inputfile)
     if "ticks" in data_df:
         data_df["ticks"] = data_df["ticks"] / 1000 + time.time()
@@ -205,7 +207,7 @@ def raw_csv_to_har_format(inputfile, outputfile, oversamplingfreq, chunksize, ch
 
     ## delete all unnamed columns (e.g. the "0"-column in the exports)
     data_df = data_df.loc[:, ~data_df.columns.str.contains('^Unnamed')]
-    
+    print(f"2/ fetched {data_df.shape[0]} lines.")
     ## set index. important!
     data_df = data_df.set_index("time")
 
@@ -218,6 +220,7 @@ def raw_csv_to_har_format(inputfile, outputfile, oversamplingfreq, chunksize, ch
     #### compensate the data-aquisition-jitter (by upsampling and interpolation)
     # Alternative: Use nearest-neighbour or spline-interpolation instead of linear one?
     # method=linear = ignores the index and treats them as equally spaced. not suitable for usecase, use method=time!
+    print(f"3/ resampling dataset to virtual aquisition rate of {oversamplingfreq} Hz")
     oversampling_timedelta = 1 / oversamplingfreq
     data_df = data_df.resample(f"{oversampling_timedelta}s").mean().interpolate(method='time')
     # optional: downsample again to e.g. 50Hz used in HAR-Dataset?
@@ -230,6 +233,7 @@ def raw_csv_to_har_format(inputfile, outputfile, oversamplingfreq, chunksize, ch
 
         return scp.signal.filtfilt(b, a, data)
 
+    print("4/ apply filters (butterworth, derivatives) to resampled data")
     # apply filter to all columns
     body_df = data_df.apply(lambda col: bworth_filter(col, oversamplingfreq, 3, 20))
 
@@ -244,6 +248,7 @@ def raw_csv_to_har_format(inputfile, outputfile, oversamplingfreq, chunksize, ch
     intermediate_df = pd.merge(baseline_df, derivative_df, left_index=True, right_index=True, how="outer", suffixes=("_accel", "_jerk"))
 
     #### Sampling/Batching for statistical feature generation
+    print("5/ generate data-windows and iterate through them. this may take a while.")
     ## sample by time duration
     TIME_DURATION = f"{chunksize/1000}s"
     window_width = pd.Timedelta(milliseconds=chunksize)
@@ -261,7 +266,7 @@ def raw_csv_to_har_format(inputfile, outputfile, oversamplingfreq, chunksize, ch
     # prepare the indexing for the data blocks
     samplect = (chunksize / 1000) / oversampling_timedelta
     window_count = math.ceil(intermediate_df.shape[0] / (samplect * (1-chunkoverlap)))
-    for group_id in range(window_count):
+    for group_id in tqdm(range(window_count)):
         group_start_idx = int(np.floor(group_id * (samplect * (1-chunkoverlap))))
         group_end_idx = int(np.floor(group_start_idx + samplect))
 
@@ -312,10 +317,14 @@ def raw_csv_to_har_format(inputfile, outputfile, oversamplingfreq, chunksize, ch
         combi = pd.concat([v_mean, v_std, v_mad, v_min, v_max, v_sma, v_iqr, v_entropy, v_energy, v_fft], axis=0)
         
         output_data.append(combi)
+        if group_id % (window_count/20) == 0:
+            print("#", end="")
 
+    print("6/ data generation complete.")
     final_data = pd.DataFrame(output_data)
-    print("SHAPE", final_data.shape)
+    print(f"7/ dumping dataset of shape {final_data.shape} into file '{outputfile}'.")
     final_data.to_csv(outputfile)
+    print("8/ done. quitting.")
 
 if __name__ == "__main__":
     cli()
