@@ -20,7 +20,7 @@ The `logupload.py` program should be used for ingesting the data to the influx d
 `python3 logupload.py upload-ljson --inputFile "test.json"`
 
 After the upload is complete, data should now appear in the grafana-dashboard:
-![Grafana Dashboard after file upload](grafana_upload_file.png)
+![Grafana Dashboard after file upload](doc/grafana_upload_file.png)
 
 If you can't see anything, use the time selector at the top right corner to select the date range you need. It helps to start with a bigger range and then zoom in to the ROI you want to work.
 
@@ -38,13 +38,13 @@ If you have timestamps in your video, also upload those to the database by also 
 `python3 logupload.py upload-videostamps --inputFile="VID20233foobar.mp4" --startMarkerTime 2019-03-27T17:38:40.00 --startmarkerframe=100 --endmarkerframe=13785 --framerate 15.03`
 
 If the upload was successful, you can go back to the grafana window and scroll down to the "Camera"-Plot. There you'll see a bunch of dots (if you are on big zoom levels it looks more like a thicker line). If you hover over them, you can extract the framenumer in the tooltip as well as compare it to the recorded data in the diagrams above by using the synchronized crosshairs displayed in all diagrams.
-![hovering over a video frame](hover_videoframe.png)
+![hovering over a video frame](doc/hover_videoframe.png)
 
 ## annotating data
 
 To annotate the data, select the range you want to label by keeping the Ctrl-Key pressed while dragging the desired range with your mouse. When stopping this dragging motion, a popup-window appears as showed below. In there you can add a short description if you want, and most importantly add one or more tags from the list below.
 
-![Adding tags to a time range](adding_tags.png)
+![Adding tags to a time range](doc/adding_tags.png)
 
 | **Tag**    | **Full Name**        | **Comments**                                                                                                                                                                                                                                    |
 |------------|----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
