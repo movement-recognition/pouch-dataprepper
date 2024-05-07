@@ -55,7 +55,6 @@ def list_annotations(grafanaconfigfile, tagfilter, mergethreshold):
     # variables needed for merging
     last_end_timestamp = 0
     last_matched = False
-    merge_thresh = False
     print("     StartTime          EndTime           Description                                Tags")
     for a in annotation_list:
         filter_match = filter_function(tagfilter, a)
@@ -64,9 +63,12 @@ def list_annotations(grafanaconfigfile, tagfilter, mergethreshold):
 
         if filter_match:
             if merge_thresh:
-                selstr = "\033[94m[x]\033[0m" # blue X
+                selstr = "\033[94m[|]\033[0m" # blue pipesymbol
             else:
-                selstr = "\033[92m[x]\033[0m" # green x
+                if last_matched:
+                    selstr = "\033[92m[o]\033[0m" # green o
+                else:
+                    selstr = "\033[92m[x]\033[0m" # green x
                 
             cumulated_tag_time += a["timeEnd"] - a["time"]
             cumulated_tag_count += 1
@@ -74,7 +76,10 @@ def list_annotations(grafanaconfigfile, tagfilter, mergethreshold):
             last_matched = True
             last_end_timestamp = a["timeEnd"]
         else:
-            selstr = "\033[91m[ ]\033[0m" # red x
+            if last_matched:
+                selstr = "\033[91m[-]\033[0m" # red bracket
+            else:
+                selstr = "\033[91m[ ]\033[0m" # red bracket
             last_matched = False
 
         date_string_format = '%y-%m-%dT%H:%M:%S'
@@ -91,7 +96,8 @@ def list_annotations(grafanaconfigfile, tagfilter, mergethreshold):
 @click.option("--grafanaConfigfile", default="config.json", help="path to the config-file containing the grafana config-data.")
 @click.option("--tagFilter", default="", help="filter the annotations by their tag")
 @click.option("--outputFile", default="data/rawExport.csv", help="Filename to output the data to")
-def load_data_to_csv(grafanaconfigfile, tagfilter, outputfile):
+@click.option("--mergeThreshold", default=-1, help="time in ms when two labels with matching filter should be merged together. -1 = switched off = default.")
+def load_data_to_csv(grafanaconfigfile, tagfilter, outputfile, mergethreshold):
     with open(grafanaconfigfile, "r") as f:
         config = json.load(f)
         auth_header = {"Authorization": f"Bearer {config['grafana_token']}"}
@@ -102,10 +108,37 @@ def load_data_to_csv(grafanaconfigfile, tagfilter, outputfile):
     data = []
     if tagfilter == "":
         print("no tagFilter supplied, using all tagged data existing")
+
+     # variables needed for merging
+    last_end_timestamp = 0
+    last_matched = False
+
+    upload_event = False
+
     for a in annotation_list:
         filter_match = filter_function(tagfilter, a)
-
+        merge_thresh = mergethreshold > 0 and a["time"] - last_end_timestamp < mergethreshold and last_matched == True
+        
         if filter_match:
+            if merge_thresh:
+                pass
+            else:
+                if last_matched:
+                    # upload last segment, start next segment
+                else:
+                    # start next segment
+
+            last_matched = True
+            last_end_timestamp = a["timeEnd"]
+        else:
+            if last_matched:
+                # upload last segment
+            else:
+                # reset 
+            last_matched = False
+            
+        
+        if upload_event:
             date_string_format = '%y-%m-%dT%H:%M:%S'
             start_time_str = datetime.datetime.utcfromtimestamp(a["time"] / 1000).strftime(date_string_format)
             end_time_str = datetime.datetime.utcfromtimestamp(a["timeEnd"]/1000).strftime(date_string_format)
