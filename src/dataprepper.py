@@ -80,6 +80,15 @@ def list_annotations(grafanaconfigfile, tagfilter, mergethreshold):
     # variables needed for merging
     last_end_timestamp = 0
     last_matched = False
+
+    print("LEGEND")
+    print("\033[92m[x]\033[0m = a new section begins at the start of this element")
+    print("\033[94m[|]\033[0m = in the middle of a section")
+    print("\033[91m[-]\033[0m = the section ended at the end of the element before this one")
+    print()
+    print("\033[92m[o]\033[0m = a section ended at the element in the row above AND a new section begins at the start of this element")
+    print("\033[91m[ ]\033[0m = this element did not match any filter so it isn't part of the export.")
+    print("")
     print("     StartTime          EndTime           Description                                Tags")
     for a in annotation_list:
         filter_match = filter_function(tagfilter, a)
