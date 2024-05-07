@@ -31,14 +31,39 @@ def filter_function(tagfilter, annotation):
 def fetch_annotations(grafanaconfigfile):
     with open(grafanaconfigfile, "r") as f:
         config = json.load(f)
-
     auth_header = {"Authorization": f"Bearer {config['grafana_token']}"}
+
     annotation_url = f"{config['grafana_base_url']}/api/annotations?from=0&to=180656035630300&limit=10000&matchAny=false&dashboardUID={config['grafana_dashboard_uid']}"
     annotation_req = requests.get(annotation_url, headers=auth_header)
 
     annotation_list = annotation_req.json()
     annotation_list = sorted(annotation_list, key=lambda d: d['time']) # sort time-ascending
     return annotation_list
+
+def fetch_dataseries(grafanaconfigfile, startTime, endTime, description=""):
+    with open(grafanaconfigfile, "r") as f:
+        config = json.load(f)
+    auth_header = {"Authorization": f"Bearer {config['grafana_token']}"}
+
+
+    print("\033[94madding\033[0m", description, end="")
+
+    data_query = f'SELECT aG, bG, cG, xG, yG, zG, xH, yH, zH, xL, yL, zL FROM "autogen"."schnieboard_meas" WHERE time >= {startTime}ms and time <= {endTime}ms;'
+    data_url = f"{config['grafana_base_url']}/api/datasources/proxy/uid/{config['grafana_datasource_uid']}/query?db=master&q={requests.utils.quote(data_query)}"
+    data_req = requests.get(data_url, headers=auth_header)
+
+    data_list = data_req.json()
+    data = []
+    if "series" in data_list["results"][0]:
+        data_subset = data_list["results"][0]["series"][0]
+        data_cols = data_subset["columns"]
+        
+        for row in data_subset["values"]:
+            data.append(dict(zip(data_cols, row)))
+        print("\r\033[92m done \033[0m", description)
+    else:
+        print("\r\033[91merror:\033[0m", "no rows in time range of", f'({description})')
+    return data
 
 
 @cli.command()
@@ -113,54 +138,34 @@ def load_data_to_csv(grafanaconfigfile, tagfilter, outputfile, mergethreshold):
     last_end_timestamp = 0
     last_matched = False
 
-    upload_event = False
-
+    upload_start_time = 0
+    # upload_end_time = 0
+    upload_description = ""
     for a in annotation_list:
         filter_match = filter_function(tagfilter, a)
         merge_thresh = mergethreshold > 0 and a["time"] - last_end_timestamp < mergethreshold and last_matched == True
         
         if filter_match:
             if merge_thresh:
-                pass
+                # piping through this segment, no upload action needed, just extending the description
+                upload_description += f'={a["text"]}'
             else:
-                if last_matched:
-                    # upload last segment, start next segment
-                else:
-                    # start next segment
+                if last_matched: # upload last segment
+                    data.extend(fetch_dataseries(grafanaconfigfile, upload_start_time, last_end_timestamp, upload_description))
+                # … and start next segment
+                upload_start_time = a["time"]
+                upload_description = a["text"]
 
             last_matched = True
             last_end_timestamp = a["timeEnd"]
         else:
             if last_matched:
                 # upload last segment
+                data.extend(fetch_dataseries(grafanaconfigfile, upload_start_time, last_end_timestamp, upload_description))
             else:
-                # reset 
-            last_matched = False
-            
-        
-        if upload_event:
-            date_string_format = '%y-%m-%dT%H:%M:%S'
-            start_time_str = datetime.datetime.utcfromtimestamp(a["time"] / 1000).strftime(date_string_format)
-            end_time_str = datetime.datetime.utcfromtimestamp(a["timeEnd"]/1000).strftime(date_string_format)
-            print("\033[94madding\033[0m", a["text"], end="")
+                pass # reset
 
-            startTime = a["time"]
-            endTime = a["timeEnd"]
-            data_query = f'SELECT aG, bG, cG, xG, yG, zG, xH, yH, zH, xL, yL, zL FROM "autogen"."schnieboard_meas" WHERE time >= {startTime}ms and time <= {endTime}ms;'
-            data_url = f"{config['grafana_base_url']}/api/datasources/proxy/uid/{config['grafana_datasource_uid']}/query?db=master&q={requests.utils.quote(data_query)}"
-            data_req = requests.get(data_url, headers=auth_header)
-
-            data_list = data_req.json()
-            if "series" in data_list["results"][0]:
-                data_subset = data_list["results"][0]["series"][0]
-                data_cols = data_subset["columns"]
-                
-                for row in data_subset["values"]:
-                    data.append(dict(zip(data_cols, row)))
-                print("\r\033[92m done \033[0m", a["text"])
-            else:
-                print("\r\033[91merror:\033[0m", "no rows in time range of", f'({a["text"]})')
-            
+            last_matched = False           
 
     data_df = pd.DataFrame(data)
 
