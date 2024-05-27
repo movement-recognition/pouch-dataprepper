@@ -187,7 +187,8 @@ def load_data_to_csv(grafanaconfigfile, tagfilter, outputfile, mergethreshold):
 @click.option("--oversamplingFreq", default=1000, type=float, help="Oversampling frequency for data-dejittering. Defaults to 1kHz")
 @click.option("--chunkSize", default=500, type=int, help="Chunk size used for grouping and statistical analysis. defaults to 500ms.")
 @click.option("--chunkOverlap", default=0, type=float, help="Overlap between two chunks/windows used for statistical analysis")
-def raw_csv_to_har_format(inputfile, outputfile, oversamplingfreq, chunksize, chunkoverlap):
+@click.option("--usedDataTracks", default="xyzH,xyzL,xyzG,abcG", help="comma seperated list of data tracks to be used")
+def raw_csv_to_har_format(inputfile, outputfile, oversamplingfreq, chunksize, chunkoverlap, useddatatracks):
     import numpy as np
     import scipy as scp
     import pandas as pd
@@ -211,11 +212,34 @@ def raw_csv_to_har_format(inputfile, outputfile, oversamplingfreq, chunksize, ch
     ## set index. important!
     data_df = data_df.set_index("time")
 
-    #### add the "magnitude columns combining xyz/abc"
-    data_df["xyzH"] = np.sqrt(data_df["xH"] ** 2 + data_df["yH"] ** 2 + data_df["zH"] ** 2)
-    data_df["xyzL"] = np.sqrt(data_df["xL"] ** 2 + data_df["yL"] ** 2 + data_df["zL"] ** 2)
-    data_df["xyzG"] = np.sqrt(data_df["xG"] ** 2 + data_df["yG"] ** 2 + data_df["zG"] ** 2)
-    data_df["abcG"] = np.sqrt(data_df["aG"] ** 2 + data_df["bG"] ** 2 + data_df["cG"] ** 2)
+    #### add the "magnitude columns combining xyz/abc" and filter by useddatatracks
+    if "xyzH" in useddatatracks:
+        data_df["xyzH"] = np.sqrt(data_df["xH"] ** 2 + data_df["yH"] ** 2 + data_df["zH"] ** 2)
+    else:
+        del data_df["xH"]
+        del data_df["yH"]
+        del data_df["zH"]
+    
+    if "xyzL" in useddatatracks:
+        data_df["xyzL"] = np.sqrt(data_df["xL"] ** 2 + data_df["yL"] ** 2 + data_df["zL"] ** 2)
+    else:
+        del data_df["xL"]
+        del data_df["yL"]
+        del data_df["zL"]
+
+    if "xyzG" in useddatatracks:
+        data_df["xyzG"] = np.sqrt(data_df["xG"] ** 2 + data_df["yG"] ** 2 + data_df["zG"] ** 2)
+    else:
+        del data_df["xG"]
+        del data_df["yG"]
+        del data_df["zG"]
+    
+    if "abcG" in useddatatracks:
+        data_df["abcG"] = np.sqrt(data_df["aG"] ** 2 + data_df["bG"] ** 2 + data_df["cG"] ** 2)
+    else:
+        del data_df["aG"]
+        del data_df["bG"]
+        del data_df["cG"]
 
     #### compensate the data-aquisition-jitter (by upsampling and interpolation)
     # Alternative: Use nearest-neighbour or spline-interpolation instead of linear one?
@@ -323,7 +347,7 @@ def raw_csv_to_har_format(inputfile, outputfile, oversamplingfreq, chunksize, ch
     print("6/ data generation complete.")
     final_data = pd.DataFrame(output_data)
     print(f"7/ dumping dataset of shape {final_data.shape} into file '{outputfile}'.")
-    final_data.to_csv(outputfile)
+    final_data.to_csv(outputfile, index=False)
     print("8/ done. quitting.")
 
 if __name__ == "__main__":
