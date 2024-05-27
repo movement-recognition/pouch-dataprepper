@@ -121,10 +121,10 @@ def list_annotations(grafanaconfigfile, tagfilter, mergethreshold):
         start_time_str = datetime.datetime.utcfromtimestamp(a["time"] / 1000).strftime(date_string_format)
         end_time_str = datetime.datetime.utcfromtimestamp(a["timeEnd"] / 1000).strftime(date_string_format)
         a["tags"].sort()
-        print(selstr, str(start_time_str).rjust(18), str(end_time_str).rjust(18), a["text"][:42].ljust(42), a["tags"])
+        print(selstr, str(start_time_str).rjust(18), str(end_time_str).rjust(18), a["text"][:42].strip().ljust(42), ", ".join(a["tags"]))
 
     print("\n")
-    print(f"cumulated duration of {cumulated_tag_count} selected tags: {round(cumulated_tag_time / 1000, 1)} seconds")
+    print(f"cumulated duration of {cumulated_tag_count} selected tags: {round(cumulated_tag_time / 1000, 1)} seconds (= {round(cumulated_tag_time / 60000, 1)} mins)")
 
 
 @cli.command()
@@ -158,13 +158,13 @@ def load_data_to_csv(grafanaconfigfile, tagfilter, outputfile, mergethreshold):
         if filter_match:
             if merge_thresh:
                 # piping through this segment, no upload action needed, just extending the description
-                upload_description += f'={a["text"]}'
+                upload_description += f'={a["text"].strip()}'
             else:
                 if last_matched: # upload last segment
                     data.extend(fetch_dataseries(grafanaconfigfile, upload_start_time, last_end_timestamp, upload_description))
                 # … and start next segment
                 upload_start_time = a["time"]
-                upload_description = a["text"]
+                upload_description = a["text"].strip()
 
             last_matched = True
             last_end_timestamp = a["timeEnd"]

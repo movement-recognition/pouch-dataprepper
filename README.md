@@ -136,3 +136,10 @@ Not implemented yet but may be in future: Option to enable/disable data-streams 
 You can get also get help or short explanation-texts for the parameters by calling all of the listed commands above with the `--help`-suffix.
 
 #### WARNING: At the moment, the labels are not exported to the files in any kind. you have to do this by yourself, e.g. by using a basic shell script fetching the data for each category and adding it's label as a seperate column. 
+
+### Proposal of tag-groupings
+
+- movement of any kind: `--tagFilter="dec_mov;acc_mov;crus_mov;turn_mov" --mergeThreshold=100` (works as long as no non-`pltk_veh`-Datasets are uploaded)
+- idling around: `--tagFilter="idl_mov" --mergeThreshold=100`
+- picking up: `--tagFilter="dr-un_evt;lf-up_evt" --mergeThreshold=100`
+- letting down: `--tagFilter="dr-out_evt;lf-dw_evt" --mergeThreshold=100`
