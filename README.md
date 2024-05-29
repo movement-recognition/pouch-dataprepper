@@ -50,40 +50,40 @@ To annotate the data, select the range you want to label by keeping the Ctrl-Key
 
 ![Adding tags to a time range](doc/adding_tags.png)
 
-| **Tag**    | **Full Name**        | **Comments**                                                                                                                                                                                                                                    |
+| **Tag**    | **Full Name**        | **Comments** |
 |------------|----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **_veh_**  | **_vehicle type_**   |                                                                                                                                                                                                                                                 |
-| man_veh    | manual               | everything that is direct human interaction without a tool or vehicle                                                                                                                                                                           |
-| pltk_veh   | pallet truck         |                                                                                                                                                                                                                                                 |
-| forkl_veh  | forkflift            |                                                                                                                                                                                                                                                 |
-| truck_veh  | truck                |                                                                                                                                                                                                                                                 |
-| **_flo_**  | **_floor type_**     |                                                                                                                                                                                                                                                 |
-| lino_flo   | linoleum             |                                                                                                                                                                                                                                                 |
-| conc_flo   | concrete             |                                                                                                                                                                                                                                                 |
-| asph_flo   | asphalt              |                                                                                                                                                                                                                                                 |
-| grav_flo   | gravel               |                                                                                                                                                                                                                                                 |
-| carp_flo   | carpet               |                                                                                                                                                                                                                                                 |
-| **_mov_**  | **_movement type_**  |                                                                                                                                                                                                                                                 |
-| acc_mov    | accelerating         | can be combined with direction                                                                                                                                                                                                                  |
-| dec_mov    | decelerating         | can be combined with direction                                                                                                                                                                                                                  |
-| idl_mov    | idle                 |                                                                                                                                                                                                                                                 |
-| crus_mov   | crusing              | generally for longer movements; in case of clear directions, should be combined with one or more directions; else (or when a combination of e.g. different small curves) can be left undefined                                                  |
-| turn_mov   | turn (in direction)  | for short, intended, clearly delimitable turns of direction (e.g. 90° on "crossroads" between two warehouse routes; as opposed to slight unimportant direction changes while generally going straight forward). MUST be combined with direction |
-| **_dir_**  | **_direction type_** |                                                                                                                                                                                                                                                 |
-| up_dir     | up                   |                                                                                                                                                                                                                                                 |
-| dwn_dir    | down                 |                                                                                                                                                                                                                                                 |
-| clocw_dir  | clockwise            |                                                                                                                                                                                                                                                 |
-| counw_dir  | counter-clockwise    |                                                                                                                                                                                                                                                 |
-| forw_dir   | forwards             |                                                                                                                                                                                                                                                 |
-| bac_dir    | backwards            |                                                                                                                                                                                                                                                 |
-| **_evt_**  | **_short events_**   |                                                                                                                                                                                                                                                 |
-| dr-un_evt  | drive under          | pallet truck or forklift under a pallet                                                                                                                                                                                                         |
-| dr-out_evt | drive out            | pallet truck or forklift under a pallet                                                                                                                                                                                                         |
-| lf-up_evt  | lift up              |                                                                                                                                                                                                                                                 |
-| lf-dw_evt  | lift down            |                                                                                                                                                                                                                                                 |
-| tilt_evt   | tilt                 | can be combined with direction                                                                                                                                                                                                                  |
-| crsh_evt   | crash                | any kind of accident                                                                                                                                                                                                                            |
-| surnd_evt  | surrounding event    | any kind of (possibly) measurable distraction in the surroundings that is not directly attached or interacting with the device; try to specify the situation via veh and flo types                                                           |
+| **_veh_**  | **_vehicle type_**   | _the kind of vehicle that the sensor device is currently sitting on; *always* specify this, even when idling_ |
+| man_veh    | manual               | everything that is direct human interaction without a tool or vehicle |
+| pltk_veh   | pallet truck         |  |
+| forkl_veh  | forkflift            |  |
+| truck_veh  | truck                |  |
+| **_flo_**  | **_floor type_**     | _the kind of floor the vehicle or device itself is currently moving/idling upon; *always* specify this, even when idling_ |
+| lino_flo   | linoleum             |  |
+| conc_flo   | concrete             |  |
+| asph_flo   | asphalt              |  |
+| grav_flo   | gravel               |  |
+| carp_flo   | carpet               |  |
+| **_mov_**  | **_movement type_**  | _the movement speed and its development over time (exception: turn_mov is a flag)_ |
+| acc_mov    | accelerating         | can be combined with direction |
+| dec_mov    | decelerating         | can be combined with direction |
+| idl_mov    | idle                 |  |
+| crus_mov   | crusing              | generally for longer movements; in case of clear directions, should be combined with one or more directions; else (or when a combination of e.g. different small curves) can be left undefined |
+| turn_mov   | turn (in direction)  | for intended turns of direction (e.g. 90° on "crossroads" between two warehouse routes; as opposed to slight unimportant direction changes to just avoid an obstacle while generally going e.g. straight forward); free flag to be added on top of an already complete movement description |
+| **_dir_**  | **_direction type_** | _the direction parameter(s) to a movement_ |
+| up_dir     | up                   | only to be used for forklifts; for pallet trucks, use lf-up_evt |
+| dwn_dir    | down                 | only to be used for forklifts; for pallet trucks, use lf-dw_evt |
+| clocw_dir  | clockwise            |  |
+| counw_dir  | counter-clockwise    |  |
+| forw_dir   | forwards             |  |
+| bac_dir    | backwards            |  |
+| **_evt_**  | **_short events_**   | _shortcuts for common events; replaces mov and dir types (and vice versa), except noted otherwise_ |
+| dr-un_evt  | drive under          | pallet truck or forklift under a pallet |
+| dr-out_evt | drive out            | pallet truck or forklift under a pallet |
+| lf-up_evt  | lift up              |  |
+| lf-dw_evt  | lift down            |  |
+| tilt_evt   | tilt                 | can be combined with direction |
+| crsh_evt   | crash                | any kind of accident |
+| surnd_evt  | surrounding event    | any kind of (possibly) measurable distraction in the surroundings that is not directly attached or interacting with the device; free flag to be added on top of an already complete situation description (may often be idl_mov, and the respective vehicle and floor) |
 
 It helps, if you are only using one diagram for annotating (e.g. the one for "gyro") to avoid overlapping tagging -- but for the further steps it doesn't matter, all ranges are thrown together into one big dataset.
 
