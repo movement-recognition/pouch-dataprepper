@@ -63,6 +63,7 @@ To annotate the data, select the range you want to label by keeping the Ctrl-Key
 | asph_flo   | asphalt              |  |
 | grav_flo   | gravel               |  |
 | carp_flo   | carpet               |  |
+| tiles_flo  | tiles                |  |
 | **_mov_**  | **_movement type_**  | _the movement speed and its development over time (exception: turn_mov is a flag)_ |
 | acc_mov    | accelerating         | can be combined with direction |
 | dec_mov    | decelerating         | can be combined with direction |
@@ -84,6 +85,7 @@ To annotate the data, select the range you want to label by keeping the Ctrl-Key
 | tilt_evt   | tilt                 | can be combined with direction |
 | crsh_evt   | crash                | any kind of accident |
 | surnd_evt  | surrounding event    | any kind of (possibly) measurable distraction in the surroundings that is not directly attached or interacting with the device; free flag to be added on top of an already complete situation description (may often be idl_mov, and the respective vehicle and floor) |
+| flo-chng_evt | floor change       | when driving from one kind of floor surface to the next; applicable only for the time range in which not all wheels/feet of the vehicle are on the same floor; shall be used as a flag on top of a mov-based description (similar to the usage of turn); both floors shall be tagged in this range |
 
 It helps, if you are only using one diagram for annotating (e.g. the one for "gyro") to avoid overlapping tagging -- but for the further steps it doesn't matter, all ranges are thrown together into one big dataset.
 
