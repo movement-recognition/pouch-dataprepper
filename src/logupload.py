@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
+import os
 import time
 import requests
 import json
 import click
 import pandas as pd
 import numpy as np
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 __author__ = "Leon Schnieber"
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 __maintainer__ = "Leon Schnieber"
 __email__ = "leon@faler.ch"
 __status__ = "Development"
@@ -113,6 +114,58 @@ def upload_videostamps(inputfile, startmarkertime, startmarkerframe, endmarkerfr
     else:
         print("camera framenumbers fail", r, r.text)
 
+
+@cli.command()
+@click.option("--inputFile", help="Video-Filename used for labeling the upload-data")
+@click.option("--influxBaseUrl", default="https://sensor:wd40@smartpouch.foobar.rocks/influx", help="URL to influx-server endpoint")
+@click.option("--influxDatabase", default="master", help="Database-name of influx-server to write in")
+@click.option("--influxTableName", default="location", help="table name inside the influx-database, e.g. for debugging")
+def upload_gpx_track(inputfile, influxbaseurl, influxdatabase, influxtablename):
+    import xmltodict
+    import pytz
+
+    with open(inputfile, "r") as f:
+        text = "".join(f.readlines())
+        data = xmltodict.parse(text)
+
+    # preprocess gpx-file
+    pointsClean = []
+    for point in data["gpx"]["trk"]["trkseg"]["trkpt"]:
+        cleanData = {
+            "lon": float(point["@lon"]),
+            "lat": float(point["@lat"]),
+            "ele": float(point["ele"])
+        }
+        if "time" in point:
+            cleanData["time"] = point["time"]
+            cleanData["timeD"] = datetime.strptime(cleanData["time"], '%Y-%m-%dT%H:%M:%SZ')
+            cleanData["timeD"] = cleanData["timeD"].replace(tzinfo=timezone.utc)
+        else:
+            cleanData["time"] = ""
+            cleanData["timeD"] = datetime.strptime("2000-01-01T00:00:00.000Z", '%Y-%m-%dT%H:%M:%SZ').total_seconds()
+        if "extensions" in point:
+            if "gpxtpx:TrackPointExtension" in point["extensions"] and "gpxtpx:hr" in point["extensions"]["gpxtpx:TrackPointExtension"]:
+                cleanData["hr"] =  int(point["extensions"]["gpxtpx:TrackPointExtension"]["gpxtpx:hr"])
+            else:
+                cleanData["hr"] = 0
+                
+            if "osmand:speed" in point["extensions"]:
+                cleanData["hspeed"] = float(point["extensions"]["osmand:speed"])
+        else:
+            pass
+
+        pointsClean.append(cleanData)
+
+    # generate influx-query
+    grafana_lines = ""
+    for pt in pointsClean:
+        timestamp = pt["timeD"].timestamp()
+        grafana_lines += f"location,sensor=pouch01 lat={pt['lat']},lon={pt['lon']},alt={pt['ele']},hspeed={pt['hspeed']} {round(timestamp)}\n"    
+    r = requests.post(f"{influxbaseurl}/write?db={influxdatabase}&precision=s", grafana_lines, timeout=10)
+    if r.status_code >= 200 and r.status_code <= 299:
+       print("gpx upload ok", r.text)
+    else:
+       print("gpx upload fail", r, r.text)
 
 if __name__ == "__main__":
     cli()

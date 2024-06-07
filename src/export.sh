@@ -39,8 +39,16 @@ for export in data/*.har; do
     fn=$(basename $export .har | sed -e 's/export_//')
     line_count=$(wc -l < "$export")
 
-    # dump to X-File
-    cat $export >> $outXFile
-    # dump label to y-File
-    yes $fn | head -n $line_count >> $outyFile
+    
+    if [$LOOP_INDEX -eq 1]; then # skip the first row in all files except the first one (only one header is needed)
+        # dump to X-File
+        cat $export >> $outXFile
+        # dump label to y-File
+        yes $fn | head -n $line_count >> $outyFile
+    else
+        ((line_count--)) # ignore the header line
+        cat $export | tail -n+2 >> $outXFile
+        # dump label to y-File
+        yes $fn | head -n $line_count >> $outyFile
+    
 done
