@@ -34,21 +34,25 @@ done
 echo "" > $outXFile
 echo "" > $outyFile
 
+loop_index=0
 for export in data/*.har; do
     # category name
     fn=$(basename $export .har | sed -e 's/export_//')
     line_count=$(wc -l < "$export")
 
-    
-    if [$LOOP_INDEX -eq 1]; then # skip the first row in all files except the first one (only one header is needed)
+    if [[ "$loop_index" == 0 ]]; then # skip the first row in all files except the first one (only one header is needed)
+        echo "first"
         # dump to X-File
         cat $export >> $outXFile
         # dump label to y-File
         yes $fn | head -n $line_count >> $outyFile
     else
+        echo "other"
         ((line_count--)) # ignore the header line
         cat $export | tail -n+2 >> $outXFile
         # dump label to y-File
         yes $fn | head -n $line_count >> $outyFile
-    
+    fi
+
+    loop_index=$((loop_index + 1))
 done
