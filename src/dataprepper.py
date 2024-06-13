@@ -34,7 +34,7 @@ def fetch_annotations(grafanaconfigfile):
         config = json.load(f)
     auth_header = {"Authorization": f"Bearer {config['grafana_token']}"}
 
-    annotation_url = f"{config['grafana_base_url']}/api/annotations?from=0&to=180656035630300&limit=10000&matchAny=false&dashboardUID={config['grafana_dashboard_uid']}"
+    annotation_url = f"{config['grafana_base_url']}/api/annotations?from=0&to=180656035630300&limit=1000000&matchAny=false" #&dashboardUID={config['grafana_dashboard_uid']}"
     annotation_req = requests.get(annotation_url, headers=auth_header)
 
     annotation_list = annotation_req.json()

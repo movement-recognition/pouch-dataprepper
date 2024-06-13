@@ -159,7 +159,7 @@ def upload_gpx_track(inputfile, influxbaseurl, influxdatabase, influxtablename):
     # generate influx-query
     grafana_lines = ""
     for pt in pointsClean:
-        timestamp = pt["timeD"].timestamp()
+        timestamp = pt["timeD"].timestamp() - 7
         grafana_lines += f"location,sensor=pouch01 lat={pt['lat']},lon={pt['lon']},alt={pt['ele']},hspeed={pt['hspeed']} {round(timestamp)}\n"    
     r = requests.post(f"{influxbaseurl}/write?db={influxdatabase}&precision=s", grafana_lines, timeout=10)
     if r.status_code >= 200 and r.status_code <= 299:
