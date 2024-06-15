@@ -29,6 +29,29 @@ def filter_function(tagfilter, annotation):
             return True
     return filter_match
 
+def tag_list_to_struct(tag_list):
+    struct = {
+        "veh_type": "-------",
+        "floor_type": "-------",
+        "movement_type": "-------",
+        "movement_direction": "-------",
+        "short_event": "-------"
+    }
+    for t in tag_list:
+        if t[-4:] == "_veh":
+            struct["veh_type"] = t.split("_veh")[0].strip()
+        elif t[-4:] == "_flo":
+            struct["floor_type"] = t.split("_flo")[0].strip()
+        elif t[-4:] == "_mov":
+            struct["movement_type"] = t.split("_mov")[0].strip()
+        elif t[-4:] == "_dir":
+            struct["movement_direction"] = t.split("_dir")[0].strip()
+        elif t[-4:] == "_evt":
+            struct["short_event"] = t.split("_evt")[0].strip()
+        else:
+            print(t)
+    return struct
+
 def fetch_annotations(grafanaconfigfile):
     with open(grafanaconfigfile, "r") as f:
         config = json.load(f)
@@ -120,8 +143,11 @@ def list_annotations(grafanaconfigfile, tagfilter, mergethreshold):
         date_string_format = '%y-%m-%dT%H:%M:%S'
         start_time_str = datetime.datetime.utcfromtimestamp(a["time"] / 1000).strftime(date_string_format)
         end_time_str = datetime.datetime.utcfromtimestamp(a["timeEnd"] / 1000).strftime(date_string_format)
-        a["tags"].sort()
-        print(selstr, str(start_time_str).rjust(18), str(end_time_str).rjust(18), a["text"][:42].strip().ljust(42), ", ".join(a["tags"]))
+        tag_struct = tag_list_to_struct(a["tags"])
+        tag_string = f"{tag_struct['veh_type'][:4]:<4} {tag_struct['floor_type'][:4]:<4} "
+        tag_string += f"{tag_struct['movement_type'][:4]:>4}/{tag_struct['movement_direction'][:5]:<5} "
+        tag_string += f"{tag_struct['short_event'][:5]:>5}"
+        print(selstr, str(start_time_str).rjust(18), str(end_time_str).rjust(18), a["text"][:42].strip().ljust(42), tag_string)
 
     print("\n")
     print(f"cumulated duration of {cumulated_tag_count} selected tags: {round(cumulated_tag_time / 1000, 1)} seconds (= {round(cumulated_tag_time / 60000, 1)} mins)")
