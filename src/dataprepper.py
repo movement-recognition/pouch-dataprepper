@@ -35,7 +35,8 @@ def tag_list_to_struct(tag_list):
         "floor_type": "-------",
         "movement_type": "-------",
         "movement_direction": "-------",
-        "short_event": "-------"
+        "short_event": "-------",
+        "other": []
     }
     for t in tag_list:
         if t[-4:] == "_veh":
@@ -49,7 +50,7 @@ def tag_list_to_struct(tag_list):
         elif t[-4:] == "_evt":
             struct["short_event"] = t.split("_evt")[0].strip()
         else:
-            print(t)
+            struct["other"].append(t)
     return struct
 
 def fetch_annotations(grafanaconfigfile):
@@ -141,12 +142,12 @@ def list_annotations(grafanaconfigfile, tagfilter, mergethreshold):
             last_matched = False
 
         date_string_format = '%y-%m-%dT%H:%M:%S'
-        start_time_str = datetime.datetime.utcfromtimestamp(a["time"] / 1000).strftime(date_string_format)
-        end_time_str = datetime.datetime.utcfromtimestamp(a["timeEnd"] / 1000).strftime(date_string_format)
+        start_time_str = datetime.datetime.fromtimestamp(a["time"] / 1000, tz=datetime.timezone.utc).strftime(date_string_format)
+        end_time_str = datetime.datetime.fromtimestamp(a["timeEnd"] / 1000, tz=datetime.timezone.utc).strftime(date_string_format)
         tag_struct = tag_list_to_struct(a["tags"])
         tag_string = f"{tag_struct['veh_type'][:4]:<4} {tag_struct['floor_type'][:4]:<4} "
         tag_string += f"{tag_struct['movement_type'][:4]:>4}/{tag_struct['movement_direction'][:5]:<5} "
-        tag_string += f"{tag_struct['short_event'][:5]:>5}"
+        tag_string += f"{tag_struct['short_event'][:5]:>5} {','.join(tag_struct['other'])}"
         print(selstr, str(start_time_str).rjust(18), str(end_time_str).rjust(18), a["text"][:42].strip().ljust(42), tag_string)
 
     print("\n")
