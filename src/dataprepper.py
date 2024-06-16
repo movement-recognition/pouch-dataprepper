@@ -53,6 +53,16 @@ def tag_list_to_struct(tag_list):
             struct["other"].append(t)
     return struct
 
+def sanitize_tag_struct(tag_struct):
+    errors = []
+    if tag_struct["movement_type"] != "idl" and tag_struct["movement_type"] != "-------":
+        if tag_struct["movement_direction"] == "-------":
+            errors.append("not idling but no direction is set?")
+        if tag_struct["veh_type"] == "-------":
+            errors.append("not idling but no vehicle tagged?")
+    
+    return errors
+
 def fetch_annotations(grafanaconfigfile):
     with open(grafanaconfigfile, "r") as f:
         config = json.load(f)
