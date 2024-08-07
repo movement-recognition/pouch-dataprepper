@@ -24,7 +24,7 @@ def cli():
 def sanitize_tags(grafanaconfigfile, outputfile):
     annotation_list = fetch_annotations(grafanaconfigfile)
     print("foo")
-    output_str = """<html>
+    output_str = """<html><meta charset="utf-8">
     <head>
         <title>Tagging sanitizer</title>
     </head>
