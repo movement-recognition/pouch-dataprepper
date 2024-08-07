@@ -126,19 +126,22 @@ This results in a kind of raw-file-format containing all raw data captured by th
 
 With a third processing method you can then convert this intermediate file into a format which is similar to the columns/statistical features used in the [HAR-Dataset](https://doi.org/10.24432/C54S4K)/[or here](https://www.semanticscholar.org/paper/A-Public-Domain-Dataset-for-Human-Activity-using-Anguita-Ghio/83de43bc849ad3d9579ccf540e6fe566ef90a58e):
 
-`python3 dataprepper.py raw-csv-to-har-format --inputFile=data_idle.csv --outputFile=idle_data_har.csv`
+`python3 dataprepper.py raw-csv-to-har-format --inputFile=data_idle.csv --outputFile=data_idle.har.csv`
 
 If you want, you can use the following parameters to apply some basic kinds of augmentation. By default, the data is overlapped by 50% to double the amount of outputted data.
 ```
 --chunkSize INTEGER       Chunk size used for grouping and statistical analysis. defaults to 500ms.
---chunkOverlap FLOAT      Overlap between two chunks/windows used for statistical analysis
+--chunkOverlap FLOAT      Overlap between two chunks/windows used for statistical 
+--usedDataTracks          Which data/sensor tracks to use. e.g. "xyzH,xyzL,xyzG,abcG"
+--usedStatFilters         List all statistical features that should be exported to the har file. possible options are: mean,std,mad,min,max,sma,iqr,entropy,energy,energy_band.
+                          Caution: "entropy" can return infinite values (positive and negative), use with care.
 ```
 
-Not implemented yet but may be in future: Option to enable/disable data-streams in har-generation (e.g. do not export gyro-data/ignore the Low-G-Sensor et cetera)
-
 You can get also get help or short explanation-texts for the parameters by calling all of the listed commands above with the `--help`-suffix.
+Depending on the configuration, the script may take several minutes or reserve multiple gigabytes of RAM. Please consider deactivating oversampling and/or reducing the number of statistical filters/features. See the following [document](doc/performance.md) for performance measurements.
 
-#### WARNING: At the moment, the labels are not exported to the files in any kind. you have to do this by yourself, e.g. by using a basic shell script fetching the data for each category and adding it's label as a seperate column. 
+By using the **export.sh**-script, multiple _per-category_ `.har.csv`-files can be generated. Additionally, the script concatenates multiple of those and also creates a seperate file with labels
+
 
 ### Proposal of tag-groupings
 
