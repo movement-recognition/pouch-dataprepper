@@ -103,12 +103,13 @@ If you concatenate two or more tags with a comma (`man_veh,lf-dw_evt`), they are
 In the list below you'll get a preview of what tagged regions you'll get in your export.
 
 ```
-     StartTime          EndTime           Description          Tags
-[x]  24-04-12T12:58:06  24-04-12T12:58:07 Stellplatz Stuhl     ['lf-dw_evt', 'man_veh']
-[ ]  24-04-12T12:57:27  24-04-12T12:57:47 Kurvige Fahrt        ['crus_mov', 'forw_dir', 'man_veh']
-[ ]  24-04-12T12:57:21  24-04-12T12:57:23 Beschleunigen 1      ['acc_mov', 'back_dir', 'man_veh']
-[x]  24-04-12T12:57:12  24-04-12T12:57:21 Hubwagen anheben     ['lf-up_evt', 'man_veh']
-[ ]  24-04-12T12:57:08  24-04-12T12:57:12 Hubwagen unterfahren ['dr-un_evt', 'man_veh']
+     StartTime          EndTime           Description                                Tags
+[o]  24-04-12T12:59:08  24-04-12T12:59:16 idling (after stopping, before acc again)  pltk lino  idl/----- ----- 
+[o]  24-04-12T12:59:16  24-04-12T12:59:21 acc again                                  pltk lino  acc/forw  ----- 
+[o]  24-04-12T12:59:21  24-04-12T12:59:24 crusing forwards                           pltk lino crus/forw  ----- 
+[o]  24-04-12T12:59:24  24-04-12T12:59:29 turning "right"                            pltk lino crus/clocw ----- 
+[o]  24-04-12T12:59:29  24-04-12T12:59:33 slowing down                               pltk lino  dec/forw  ----- 
+[o]  24-04-12T12:59:33  24-04-12T12:59:37 soft lift down                             pltk lino ----/----- lf-dw
 ```
 
 If you think, this selection fits your needs, you then can use your filter-query with the following command:
