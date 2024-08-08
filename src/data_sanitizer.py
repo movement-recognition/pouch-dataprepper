@@ -62,7 +62,7 @@ def sanitize_tags(grafanaconfigfile, outputfile):
         output_str += f"<td>{', '.join(tag_struct['movement_type'])}</td><td>{', '.join(tag_struct['movement_direction'])}</td>"
         output_str += f"<td>{', '.join(tag_struct['short_event'])}</td><td>{', '.join(tag_struct['other'])}</td>"
 
-        output_str += f"<td>{"<br />".join(sanitize_tag_struct(tag_struct))}</td>"
+        output_str += f"<td>{'<br />'.join(sanitize_tag_struct(tag_struct))}</td>"
         output_str += "</tr>"
 
     output_str += "</tbody></table>"
