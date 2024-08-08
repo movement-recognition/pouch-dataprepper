@@ -58,9 +58,9 @@ def sanitize_tags(grafanaconfigfile, outputfile):
         tag_struct = tag_list_to_struct(a["tags"])
 
         output_str += f"<tr><td>{start_time_str}</td><td>{end_time_str}</td><td><a href='{clickable_url}'>{a['text']}</a></td>"
-        output_str += f"<td>{", ".join(tag_struct['veh_type'])}</td><td>{", ".join(tag_struct['floor_type'])}</td>"
-        output_str += f"<td>{", ".join(tag_struct['movement_type'])}</td><td>{", ".join(tag_struct['movement_direction'])}</td>"
-        output_str += f"<td>{", ".join(tag_struct['short_event'])}</td><td>{', '.join(tag_struct['other'])}</td>"
+        output_str += f"<td>{', '.join(tag_struct['veh_type'])}</td><td>{', '.join(tag_struct['floor_type'])}</td>"
+        output_str += f"<td>{', '.join(tag_struct['movement_type'])}</td><td>{', '.join(tag_struct['movement_direction'])}</td>"
+        output_str += f"<td>{', '.join(tag_struct['short_event'])}</td><td>{', '.join(tag_struct['other'])}</td>"
 
         output_str += f"<td>{"<br />".join(sanitize_tag_struct(tag_struct))}</td>"
         output_str += "</tr>"
