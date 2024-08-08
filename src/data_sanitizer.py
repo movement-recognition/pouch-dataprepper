@@ -23,7 +23,10 @@ def cli():
 @click.option("--outputFile", default="index.html", help="file to output the html overview of all tags")
 def sanitize_tags(grafanaconfigfile, outputfile):
     annotation_list = fetch_annotations(grafanaconfigfile)
-    generation_time_string = datetime.datetime.now(datetime.UTC).isoformat() + " (UTC)"
+    try:
+        generation_time_string = datetime.datetime.now(datetime.UTC).isoformat() + " (UTC)"
+    except BaseException:
+        generation_time_string = datetime.datetime.utcnow().isoformat() + " (UTC)"
     output_str = f"""<html><meta charset="utf-8">
     <head>
         <title>Tagging sanitizer</title>
