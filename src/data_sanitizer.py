@@ -87,8 +87,9 @@ def calc_statistics(grafanaconfigfile, outputfile):
     import io
     import base64
     from matplotlib import pyplot as plt
+    import numpy as np
 
-    raw_struct = {}
+    raw_struct = {"errors": {}}
     annotation_list = fetch_annotations(grafanaconfigfile)
     try:
         generation_time_string = datetime.datetime.now(datetime.UTC).isoformat() + " (UTC)"
@@ -109,7 +110,16 @@ def calc_statistics(grafanaconfigfile, outputfile):
                 if t_i not in raw_struct[t]:
                     raw_struct[t][t_i] = 0
                 raw_struct[t][t_i] += delta.total_seconds()
+        
+        errors = sanitize_tag_struct(tag_struct)
+        for er in errors:
+            er = er.split("]")[0] + "]"
+            if er not in raw_struct["errors"]:
+                raw_struct["errors"][er] = 0
+            raw_struct["errors"][er] += delta.total_seconds()
     
+    raw_struct["errors"] = dict(sorted(raw_struct["errors"].items()))
+
     # generate report
     output_str = f"""
     <html><meta charset="utf-8">
@@ -122,8 +132,12 @@ def calc_statistics(grafanaconfigfile, outputfile):
 
     for t in raw_struct:
         plt.clf()
-        plt.title(f"plot {t}")
-        plt.pie(raw_struct[t].values(), labels=raw_struct[t].keys(), autopct=lambda x: f"{x:2.1f} min")
+        plt.title(f"{t}")
+        if t != "errors":
+            plt.pie(raw_struct[t].values(), labels=raw_struct[t].keys(), autopct=lambda x: f"{(x * 0.01 / 60 * sum(raw_struct[t].values())):2.1f} min")
+        else:
+            plt.bar(raw_struct[t].keys(), height=(np.array(list(raw_struct[t].values())) / 60.0))
+            plt.ylabel("time in [min]")
 
         file_handler = io.BytesIO()
         plt.savefig(file_handler, format='png')
