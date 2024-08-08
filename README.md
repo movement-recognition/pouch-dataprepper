@@ -91,6 +91,8 @@ It helps, if you are only using one diagram for annotating (e.g. the one for "gy
 
 ![overview sheet for tagging](doc/annotation_scheme.drawio.png)
 
+There is a program checking all existing labels for correctness. Call `src/data_sanitizer.py sanitize-tags`. The program creates an `index.html` which you can view with a webbrowser. In the most right column, the sanitizer highlights possible errors. By clicking on the links, your browser directly zooms into the time range of the dataset. If the sanitizer made an false alarm, you can just add an additional `sane`-Tag to the annotation. The sanitizer script then ignores this entry.
+
 ## download/generate training datasets
 
 The dataset labeled in the grafana+influxDB-Stack can be extracted by the following chain of micro-tools:
