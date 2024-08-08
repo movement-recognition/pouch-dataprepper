@@ -73,7 +73,10 @@ def sanitize_tag_struct(tag_struct):
         if len(tmp) < 1:
             errors.append("[006] misses another directionality-layer (forward, backward, …)")
 
-    
+    # last check: sanity!
+    if "sane" in tag_struct["other"]:
+        errors = [f"[000] sane-flag is set. ignoring {len(erorrs)} errors/warnings."]
+
     return errors
 
 def fetch_annotations(grafanaconfigfile):
