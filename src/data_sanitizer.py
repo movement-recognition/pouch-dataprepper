@@ -23,14 +23,15 @@ def cli():
 @click.option("--outputFile", default="index.html", help="file to output the html overview of all tags")
 def sanitize_tags(grafanaconfigfile, outputfile):
     annotation_list = fetch_annotations(grafanaconfigfile)
-    generation_time_string = datetime.datetime.utcnow().isoformat() + " (UTC)"
+    generation_time_string = datetime.datetime.now(datetime.UTC).isoformat() + " (UTC)"
     output_str = f"""<html><meta charset="utf-8">
     <head>
         <title>Tagging sanitizer</title>
     </head>
     <body>
         <h1>Tagging sanitizer <small>generated at {generation_time_string}</small></h1>
-        <table>
+        <table class="sortable">
+            <thead>
             <tr>
                 <th>start time</th>
                 <th>end time</th>
@@ -43,6 +44,8 @@ def sanitize_tags(grafanaconfigfile, outputfile):
                 <th>other tags</th>
                 <th>sanitizer comment</th>
             </tr>
+            </thead>
+            <tbody>
     """
     for a in annotation_list:
         tag_struct = tag_list_to_struct(a["tags"])
@@ -62,19 +65,14 @@ def sanitize_tags(grafanaconfigfile, outputfile):
         output_str += f"<td>{sanitize_tag_struct(tag_struct)}</td>"
         output_str += "</tr>"
 
-    output_str += "</table>"
+    output_str += "</tbody></table>"
+    output_str += """
+    <link href="https://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/sortable.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/sortable.min.js"></script>
+    """
     output_str += "</body></html>"
     with open(outputfile, "w") as f:
         f.write(output_str)
 
 if __name__ == "__main__":
     cli()
-
-
-struct = {
-        "veh_type": "",
-        "floor_type": "",
-        "movement_type": "",
-        "movement_direction": "",
-        "short_event": ""
-    }

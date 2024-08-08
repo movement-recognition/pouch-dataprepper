@@ -31,34 +31,34 @@ def filter_function(tagfilter, annotation):
 
 def tag_list_to_struct(tag_list):
     struct = {
-        "veh_type": "-------",
-        "floor_type": "-------",
-        "movement_type": "-------",
-        "movement_direction": "-------",
-        "short_event": "-------",
+        "veh_type": [],
+        "floor_type": [],
+        "movement_type": [],
+        "movement_direction": [],
+        "short_event": [],
         "other": []
     }
     for t in tag_list:
         if t[-4:] == "_veh":
-            struct["veh_type"] = t.split("_veh")[0].strip()
+            struct["veh_type"].append(t.split("_veh")[0].strip())
         elif t[-4:] == "_flo":
-            struct["floor_type"] = t.split("_flo")[0].strip()
+            struct["floor_type"].append(t.split("_flo")[0].strip())
         elif t[-4:] == "_mov":
-            struct["movement_type"] = t.split("_mov")[0].strip()
+            struct["movement_type"].append(t.split("_mov")[0].strip())
         elif t[-4:] == "_dir":
-            struct["movement_direction"] = t.split("_dir")[0].strip()
+            struct["movement_direction"].append(t.split("_dir")[0].strip())
         elif t[-4:] == "_evt":
-            struct["short_event"] = t.split("_evt")[0].strip()
+            struct["short_event"].append(t.split("_evt")[0].strip())
         else:
             struct["other"].append(t)
     return struct
 
 def sanitize_tag_struct(tag_struct):
     errors = []
-    if tag_struct["movement_type"] != "idl" and tag_struct["movement_type"] != "-------":
-        if tag_struct["movement_direction"] == "-------":
+    if "idl" not in tag_struct["movement_type"] and tag_struct["movement_type"] != []:
+        if tag_struct["movement_direction"] == []:
             errors.append("not idling but no direction is set?")
-        if tag_struct["veh_type"] == "-------":
+        if tag_struct["veh_type"] == []:
             errors.append("not idling but no vehicle tagged?")
     
     return errors
@@ -155,10 +155,34 @@ def list_annotations(grafanaconfigfile, tagfilter, mergethreshold):
         start_time_str = datetime.datetime.fromtimestamp(a["time"] / 1000, tz=datetime.timezone.utc).strftime(date_string_format)
         end_time_str = datetime.datetime.fromtimestamp(a["timeEnd"] / 1000, tz=datetime.timezone.utc).strftime(date_string_format)
         tag_struct = tag_list_to_struct(a["tags"])
-        tag_string = f"{tag_struct['veh_type'][:4]:<4} {tag_struct['floor_type'][:4]:<4} "
-        tag_string += f"{tag_struct['movement_type'][:4]:>4}/{tag_struct['movement_direction'][:5]:<5} "
-        tag_string += f"{tag_struct['short_event'][:5]:>5} {','.join(tag_struct['other'])}"
-        print(selstr, str(start_time_str).rjust(18), str(end_time_str).rjust(18), a["text"][:42].strip().ljust(42), tag_string)
+        tag_string = ""
+        if len(tag_struct["veh_type"]) == 1:
+            tag_string += f"{tag_struct['veh_type'][0][:4]:<4} "
+        else:
+            tag_string += f"     "
+
+        if len(tag_struct["floor_type"]) <= 1:
+            tag_string += f"{".".join(tag_struct['floor_type'])[:6]:<6}  "
+        else:
+            tag_string += f"{".".join([_[:3] for _ in tag_struct['floor_type']])} "
+        
+        if len(tag_struct["movement_type"]) <= 1:
+            tag_string += f"{".".join(tag_struct['movement_type'])[:7]:>7}/"
+        else:
+            tag_string += f"{".".join([_[:3] for _ in tag_struct['movement_type']])}/"
+        
+        if len(tag_struct["movement_direction"]) <= 1:
+            tag_string += f"{".".join(tag_struct['movement_direction'])[:7]:<7}"
+        else:
+            tag_string += f"{".".join([_[:3] for _ in tag_struct['movement_direction']])}"
+
+        if len(tag_struct["short_event"]) <= 1:
+            tag_string += f" {".".join(tag_struct['short_event'])[:7]:<7}"
+        else:
+            tag_string += f" {".".join([_[:3] for _ in tag_struct['short_event']])}"
+
+        tag_string += f"{','.join(tag_struct['other'])}"
+        print(selstr, str(start_time_str).rjust(18), str(end_time_str).rjust(18), a["text"][:38].strip().ljust(38), tag_string)
 
     print("\n")
     print(f"cumulated duration of {cumulated_tag_count} selected tags: {round(cumulated_tag_time / 1000, 1)} seconds (= {round(cumulated_tag_time / 60000, 1)} mins)")
