@@ -46,13 +46,33 @@ def tag_list_to_struct(tag_list):
 
 def sanitize_tag_struct(tag_struct):
     errors = []
+    # sanitizer rules
+
     if "idl" not in tag_struct["movement_type"] and tag_struct["movement_type"] != []:
         if tag_struct["movement_direction"] == []:
-            errors.append("not idling but no direction is set?")
+            errors.append("[001] not idling but no direction is set?")
         if tag_struct["veh_type"] == []:
-            errors.append("not idling but no vehicle tagged?")
-        if "flo-chng" in tag_struct["short_event"] and len(tag_struct["floor_type"]) != 2:
-            errors.append("floor-change event needs two floor types.")
+            errors.append("[002] not idling but no vehicle tagged?")
+
+    if "flo-chng" in tag_struct["short_event"] and len(tag_struct["floor_type"]) != 2:
+        errors.append("[003] floor-change event needs two floor types.")
+
+    if "turn" in tag_struct["movement_type"]:
+        if len(tag_struct["movement_direction"]) == 0:
+            erorrs.append("[004] turn movements should have a direction attached.")
+
+        tmp = tag_struct["movement_type"].copy()
+        tmp.remove("turn")
+        if len(tmp) < 1:
+            errors.append("[005] misses another movement-type-tag. ('turn' is an overlay)")
+
+    if "counw" in tag_struct["movement_direction"] or "clocw" in tag_struct["movement_direction"]:
+        tmp = tag_struct["movement_direction"].copy()
+        tmp.remove("counw") if "counw" in tmp else True
+        tmp.remove("clocw") if "clocw" in tmp else True
+        if len(tmp) < 1:
+            errors.append("[006] misses another directionality-layer (forward, backward, …)")
+
     
     return errors
 
