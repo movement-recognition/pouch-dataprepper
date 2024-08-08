@@ -12,7 +12,7 @@ import click
 import pandas as pd
 from tqdm import tqdm
 
-from util import filter_function, fetch_annotations, tag_list_to_struct, sanitize_tag_struct
+from util import filter_function, fetch_annotations, fetch_dataseries, tag_list_to_struct, sanitize_tag_struct
 
 @click.group()
 def cli():

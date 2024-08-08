@@ -11,28 +11,48 @@ OVERSAMPLING_FREQ=0 # disable oversampling because of heavy RAM usage
 
 mkdir -p $tempDir
 
-python3 dataprepper.py load-data-to-csv --tagFilter="dr-out_evt;lf-dw_evt" --mergeThreshold=100 --outputFile="$tempDir/export_down.csv"
-python3 dataprepper.py load-data-to-csv --tagFilter="dr-un_evt;lf-up_evt" --mergeThreshold=100 --outputFile="$tempDir/export_up.csv"
-python3 dataprepper.py load-data-to-csv --tagFilter="idl_mov" --mergeThreshold=100 --outputFile="$tempDir/export_idle.csv"
-python3 dataprepper.py load-data-to-csv --tagFilter="dec_mov;acc_mov;crus_mov;turn_mov" --mergeThreshold=100 --outputFile="$tempDir/export_movement.csv" 
+python3 dataprepper.py load-data-to-csv --tagFilter="pltk_veh,dr-out_evt;pltk_veh,lf-dw_evt" --mergeThreshold=100 --outputFile="$tempDir/export_pltk_down.csv"
+python3 dataprepper.py load-data-to-csv --tagFilter="pltk_veh,dr-un_evt;pltk_veh,lf-up_evt" --mergeThreshold=100 --outputFile="$tempDir/export_pltk_up.csv"
+python3 dataprepper.py load-data-to-csv --tagFilter="pltk_veh,idl_mov" --mergeThreshold=100 --outputFile="$tempDir/export_pltk_idle.csv"
+python3 dataprepper.py load-data-to-csv --tagFilter="pltk_veh,dec_mov;pltk_veh,acc_mov;pltk_veh,crus_mov;pltk_veh,turn_mov" --mergeThreshold=100 --outputFile="$tempDir/export_pltk_movement.csv" 
 
+python3 dataprepper.py load-data-to-csv --tagFilter="bike_veh,dr-out_evt;bike_veh,lf-dw_evt" --mergeThreshold=100 --outputFile="$tempDir/export_bike_down.csv"
+python3 dataprepper.py load-data-to-csv --tagFilter="bike_veh,dr-un_evt;bike_veh,lf-up_evt" --mergeThreshold=100 --outputFile="$tempDir/export_bike_up.csv"
+python3 dataprepper.py load-data-to-csv --tagFilter="bike_veh,idl_mov" --mergeThreshold=100 --outputFile="$tempDir/export_bike_idle.csv"
+python3 dataprepper.py load-data-to-csv --tagFilter="bike_veh,dec_mov;bike_veh,acc_mov;bike_veh,crus_mov;bike_veh,turn_mov" --mergeThreshold=100 --outputFile="$tempDir/export_bike_movement.csv"
 
 # run the csv-to-har process in parallel to speed up the process
 pids=()
 commands=(
-    "python3 dataprepper.py raw-csv-to-har-format --inputFile=$tempDir/export_down.csv --outputFile=$tempDir/export_down.har.csv \
+    "python3 dataprepper.py raw-csv-to-har-format --inputFile=$tempDir/export_pltk_down.csv --outputFile=$tempDir/export_pltk_down.har.csv \
     --chunkSize=$CHUNK_SIZE --chunkOverlap=$CHUNK_OVERLAP --oversamplingFreq=$OVERSAMPLING_FREQ \
     --usedDataTracks=xyzH,xyzL,xyzG,abcG --usedStatFilters=mean,std,mad,min,max,sma,iqr,energy,energy_band" # entropy
 
-    "python3 dataprepper.py raw-csv-to-har-format --inputFile=$tempDir/export_up.csv --outputFile=$tempDir/export_up.har.csv \
+    "python3 dataprepper.py raw-csv-to-har-format --inputFile=$tempDir/export_pltk_up.csv --outputFile=$tempDir/export_pltk_up.har.csv \
     --chunkSize=$CHUNK_SIZE --chunkOverlap=$CHUNK_OVERLAP --oversamplingFreq=$OVERSAMPLING_FREQ \
     --usedDataTracks=xyzH,xyzL,xyzG,abcG --usedStatFilters=mean,std,mad,min,max,sma,iqr,energy,energy_band" # entropy
 
-    "python3 dataprepper.py raw-csv-to-har-format --inputFile=$tempDir/export_idle.csv --outputFile=$tempDir/export_idle.har.csv \
+    "python3 dataprepper.py raw-csv-to-har-format --inputFile=$tempDir/export_pltk_idle.csv --outputFile=$tempDir/export_pltk_idle.har.csv \
     --chunkSize=$CHUNK_SIZE --chunkOverlap=$CHUNK_OVERLAP --oversamplingFreq=$OVERSAMPLING_FREQ \
     --usedDataTracks=xyzH,xyzL,xyzG,abcG --usedStatFilters=mean,std,mad,min,max,sma,iqr,energy,energy_band" # entropy
 
-    "python3 dataprepper.py raw-csv-to-har-format --inputFile=$tempDir/export_movement.csv --outputFile=$tempDir/export_movement.har.csv \
+    "python3 dataprepper.py raw-csv-to-har-format --inputFile=$tempDir/export_pltk_movement.csv --outputFile=$tempDir/export_pltk_movement.har.csv \
+    --chunkSize=$CHUNK_SIZE --chunkOverlap=$CHUNK_OVERLAP --oversamplingFreq=$OVERSAMPLING_FREQ \
+    --usedDataTracks=xyzH,xyzL,xyzG,abcG --usedStatFilters=mean,std,mad,min,max,sma,iqr,energy,energy_band" # entropy
+
+    "python3 dataprepper.py raw-csv-to-har-format --inputFile=$tempDir/export_bike_down.csv --outputFile=$tempDir/export_bike_down.har.csv \
+    --chunkSize=$CHUNK_SIZE --chunkOverlap=$CHUNK_OVERLAP --oversamplingFreq=$OVERSAMPLING_FREQ \
+    --usedDataTracks=xyzH,xyzL,xyzG,abcG --usedStatFilters=mean,std,mad,min,max,sma,iqr,energy,energy_band" # entropy
+
+    "python3 dataprepper.py raw-csv-to-har-format --inputFile=$tempDir/export_bike_up.csv --outputFile=$tempDir/export_bike_up.har.csv \
+    --chunkSize=$CHUNK_SIZE --chunkOverlap=$CHUNK_OVERLAP --oversamplingFreq=$OVERSAMPLING_FREQ \
+    --usedDataTracks=xyzH,xyzL,xyzG,abcG --usedStatFilters=mean,std,mad,min,max,sma,iqr,energy,energy_band" # entropy
+
+    "python3 dataprepper.py raw-csv-to-har-format --inputFile=$tempDir/export_bike_idle.csv --outputFile=$tempDir/export_bike_idle.har.csv \
+    --chunkSize=$CHUNK_SIZE --chunkOverlap=$CHUNK_OVERLAP --oversamplingFreq=$OVERSAMPLING_FREQ \
+    --usedDataTracks=xyzH,xyzL,xyzG,abcG --usedStatFilters=mean,std,mad,min,max,sma,iqr,energy,energy_band" # entropy
+
+    "python3 dataprepper.py raw-csv-to-har-format --inputFile=$tempDir/export_bike_movement.csv --outputFile=$tempDir/export_bike_movement.har.csv \
     --chunkSize=$CHUNK_SIZE --chunkOverlap=$CHUNK_OVERLAP --oversamplingFreq=$OVERSAMPLING_FREQ \
     --usedDataTracks=xyzH,xyzL,xyzG,abcG --usedStatFilters=mean,std,mad,min,max,sma,iqr,energy,energy_band" # entropy
 )
